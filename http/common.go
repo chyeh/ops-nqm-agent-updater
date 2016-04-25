@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/Cepave/ops-updater/g"
+	"github.com/Cepave/owl-nqm-agent-updater/g"
 	"github.com/toolkits/file"
 	"net/http"
 	"strings"

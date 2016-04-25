@@ -3,7 +3,7 @@ package cron
 import (
 	"fmt"
 	"github.com/Cepave/ops-common/model"
-	"github.com/Cepave/ops-updater/g"
+	"github.com/Cepave/owl-nqm-agent-updater/g"
 	f "github.com/toolkits/file"
 	"log"
 	"os/exec"

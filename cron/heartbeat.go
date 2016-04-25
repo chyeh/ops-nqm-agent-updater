@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Cepave/ops-common/model"
 	"github.com/Cepave/ops-common/utils"
-	"github.com/Cepave/ops-updater/g"
+	"github.com/Cepave/owl-nqm-agent-updater/g"
 	"github.com/toolkits/net/httplib"
 	"log"
 	"time"
