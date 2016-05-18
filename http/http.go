@@ -2,7 +2,7 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/Cepave/owl-nqm-agent-updater/g"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
 	"log"
 	"net/http"
 	_ "net/http/pprof"

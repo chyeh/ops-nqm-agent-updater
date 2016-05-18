@@ -2,14 +2,15 @@ package cron
 
 import (
 	"fmt"
-	"github.com/Cepave/ops-common/model"
-	"github.com/Cepave/owl-nqm-agent-updater/g"
-	f "github.com/toolkits/file"
 	"log"
 	"os/exec"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/Cepave/ops-common/model"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
+	f "github.com/toolkits/file"
 )
 
 func BuildHeartbeatRequest(hostname string, agentDirs []string) model.HeartbeatRequest {

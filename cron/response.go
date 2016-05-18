@@ -1,9 +1,10 @@
 package cron
 
 import (
-	"github.com/Cepave/ops-common/model"
-	"github.com/Cepave/owl-nqm-agent-updater/g"
 	"log"
+
+	"github.com/Cepave/ops-common/model"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
 )
 
 func HandleHeartbeatResponse(respone *model.HeartbeatResponse) {
@@ -25,9 +26,9 @@ func HandleHeartbeatResponse(respone *model.HeartbeatResponse) {
 
 func HandleDesiredAgent(da *model.DesiredAgent) {
 	if da.Cmd == "start" {
-		StartDesiredAgent(da)
+		StartNQMAgent(da)
 	} else if da.Cmd == "stop" {
-		StopDesiredAgent(da)
+		StopNQMAgent(da)
 	} else {
 		log.Println("unknown cmd", da)
 	}

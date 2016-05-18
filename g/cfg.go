@@ -3,9 +3,10 @@ package g
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/toolkits/file"
 	"log"
 	"sync"
+
+	"github.com/toolkits/file"
 )
 
 type HttpConfig struct {

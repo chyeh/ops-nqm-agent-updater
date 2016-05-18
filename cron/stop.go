@@ -1,73 +1,39 @@
 package cron
 
 import (
-	"github.com/Cepave/ops-common/model"
-	"github.com/Cepave/owl-nqm-agent-updater/g"
-	"github.com/toolkits/file"
-	"log"
-	"path"
-	"strings"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"time"
+
+	"github.com/Cepave/ops-common/model"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
 )
 
-func StopDesiredAgent(da *model.DesiredAgent) {
-	if !file.IsExist(da.ControlFilepath) {
+func StopNQMAgent(da *model.DesiredAgent) {
+	nqmBinPath := filepath.Join(da.AgentVersionDir, da.Name)
+
+	moduleStatus := g.CheckModuleStatus(nqmBinPath)
+	if moduleStatus == g.NotRunning {
+		// Skip stopping if the module is stopped
 		return
 	}
 
-	ControlStopIn(da.AgentVersionDir)
-}
+	fmt.Print("Stopping [", da.Name, "] ")
 
-func StopAgentOf(agentName, newVersion string) error {
-	agentDir := path.Join(g.SelfDir, agentName)
-	versionFile := path.Join(agentDir, ".version")
+	pidStr, _ := g.CheckModulePid(da.Name)
 
-	if !file.IsExist(versionFile) {
-		log.Printf("WARN: %s is nonexistent", versionFile)
-		return nil
+	cmd := exec.Command("kill", "-9", pidStr)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Start()
+	fmt.Println("with PID [", pidStr, "]...successfully!!")
+	time.Sleep(1 * time.Second)
+
+	moduleStatus = g.CheckModuleStatus(nqmBinPath)
+	if moduleStatus == g.Running {
+		fmt.Println("** stop failed **")
+		return
 	}
-
-	version, err := file.ToTrimString(versionFile)
-	if err != nil {
-		log.Printf("WARN: read %s fail %s", version, err)
-		return nil
-	}
-
-	if version == newVersion {
-		// do nothing
-		return nil
-	}
-
-	versionDir := path.Join(agentDir, version)
-	if !file.IsExist(versionDir) {
-		log.Printf("WARN: %s nonexistent", versionDir)
-		return nil
-	}
-
-	return ControlStopIn(versionDir)
-}
-
-func ControlStopIn(workdir string) error {
-	if !file.IsExist(workdir) {
-		return nil
-	}
-
-	out, err := ControlStatus(workdir)
-	if err == nil && strings.Contains(out, "stoped") {
-		return nil
-	}
-
-	_, err = ControlStop(workdir)
-	if err != nil {
-		return err
-	}
-
-	time.Sleep(time.Second * 3)
-
-	out, err = ControlStatus(workdir)
-	if err == nil && strings.Contains(out, "stoped") {
-		return nil
-	}
-
-	return err
 }

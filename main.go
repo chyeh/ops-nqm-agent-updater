@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Cepave/owl-nqm-agent-updater/cron"
-	"github.com/Cepave/owl-nqm-agent-updater/g"
-	"github.com/Cepave/owl-nqm-agent-updater/http"
-	"github.com/toolkits/sys"
 	"log"
 	"os"
+
+	"github.com/Cepave/ops-nqm-agent-updater/cron"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
+	"github.com/Cepave/ops-nqm-agent-updater/http"
+	"github.com/toolkits/sys"
 )
 
 func main() {

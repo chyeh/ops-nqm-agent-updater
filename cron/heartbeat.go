@@ -4,12 +4,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/Cepave/ops-common/model"
-	"github.com/Cepave/ops-common/utils"
-	"github.com/Cepave/owl-nqm-agent-updater/g"
-	"github.com/toolkits/net/httplib"
 	"log"
 	"time"
+
+	"github.com/Cepave/ops-common/model"
+	"github.com/Cepave/ops-common/utils"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
+	"github.com/toolkits/net/httplib"
 )
 
 func Heartbeat() {
@@ -40,7 +41,7 @@ func heartbeat() {
 
 	bs, err := json.Marshal(heartbeatRequest)
 	if err != nil {
-		log.Println("encode heartbeat request fail", err)
+		log.Println("encode nqm heartbeat request fail", err)
 		return
 	}
 
@@ -57,10 +58,12 @@ func heartbeat() {
 	var heartbeatResponse model.HeartbeatResponse
 	err = json.Unmarshal(httpResponse, &heartbeatResponse)
 	if err != nil {
-		log.Println("decode heartbeat response fail", err)
+		log.Println("decode nqm heartbeat response fail", err)
 		return
 	}
-
+	for _, da := range heartbeatResponse.DesiredAgents {
+		da.Name = "nqm-agent"
+	}
 	if g.Config().Debug {
 		log.Println("<<<<====")
 		log.Println(heartbeatResponse)

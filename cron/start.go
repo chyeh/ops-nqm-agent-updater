@@ -2,39 +2,65 @@ package cron
 
 import (
 	"fmt"
-	"github.com/Cepave/ops-common/model"
-	"github.com/Cepave/ops-common/utils"
-	"github.com/toolkits/file"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/Cepave/ops-common/model"
+	"github.com/Cepave/ops-common/utils"
+	"github.com/Cepave/ops-nqm-agent-updater/g"
+	"github.com/toolkits/file"
 )
 
-func StartDesiredAgent(da *model.DesiredAgent) {
-	if err := InsureDesiredAgentDirExists(da); err != nil {
+func prequisite(da *model.DesiredAgent) error {
+	var err error
+	if err = InsureDesiredAgentDirExists(da); err != nil {
+		return err
+	}
+	if err = InsureNewVersionFiles(da); err != nil {
+		return err
+	}
+	if err = Untar(da); err != nil {
+		return err
+	}
+	return nil
+}
+
+func StartNQMAgent(da *model.DesiredAgent) {
+	if err := prequisite(da); err != nil {
 		return
 	}
+	nqmBinPath := filepath.Join(da.AgentVersionDir, da.Name)
 
-	if err := InsureNewVersionFiles(da); err != nil {
-		return
+	moduleStatus := g.CheckModuleStatus(nqmBinPath)
+	if moduleStatus == g.NotRunning {
+		fmt.Print("Starting [", da.Name, "]...")
+
+		logPath := filepath.Join(da.AgentVersionDir, g.LogFile)
+		LogOutput, err := os.OpenFile(logPath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+		if err != nil {
+			log.Println("Error in opening file:", err)
+			return
+		}
+		defer LogOutput.Close()
+
+		cmd := exec.Command(nqmBinPath)
+		cmd.Stdout = LogOutput
+		cmd.Stderr = LogOutput
+		dir, _ := os.Getwd()
+		cmd.Dir = dir
+		cmd.Start()
+		fmt.Println("successfully!!")
+		time.Sleep(1 * time.Second)
+		moduleStatus = g.CheckModuleStatus(nqmBinPath)
+		if moduleStatus == g.NotRunning {
+			log.Fatalln("** start failed **")
+		}
 	}
-
-	if err := Untar(da); err != nil {
-		return
-	}
-
-	if err := StopAgentOf(da.Name, da.Version); err != nil {
-		return
-	}
-
-	if err := ControlStartIn(da.AgentVersionDir); err != nil {
-		return
-	}
-
-	file.WriteString(path.Join(da.AgentDir, ".version"), da.Version)
 }
 
 func Untar(da *model.DesiredAgent) error {
@@ -47,27 +73,6 @@ func Untar(da *model.DesiredAgent) error {
 	}
 
 	return nil
-}
-
-func ControlStartIn(workdir string) error {
-	out, err := ControlStatus(workdir)
-	if err == nil && strings.Contains(out, "started") {
-		return nil
-	}
-
-	_, err = ControlStart(workdir)
-	if err != nil {
-		return err
-	}
-
-	time.Sleep(time.Second * 3)
-
-	out, err = ControlStatus(workdir)
-	if err == nil && strings.Contains(out, "started") {
-		return nil
-	}
-
-	return err
 }
 
 func InsureNewVersionFiles(da *model.DesiredAgent) error {
@@ -108,10 +113,6 @@ func FilesReady(da *model.DesiredAgent) bool {
 	}
 
 	if !file.IsExist(da.TarballFilepath) {
-		return false
-	}
-
-	if !file.IsExist(da.ControlFilepath) {
 		return false
 	}
 

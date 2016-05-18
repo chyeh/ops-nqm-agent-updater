@@ -6,7 +6,10 @@ import (
 )
 
 const (
-	VERSION = "1.0.5"
+	VERSION    = "1.0.5"
+	LogFile    = "nqm.log"
+	Running    = 0
+	NotRunning = 1
 )
 
 func init() {
