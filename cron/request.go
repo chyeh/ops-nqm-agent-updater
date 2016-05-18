@@ -1,11 +1,8 @@
 package cron
 
 import (
-	"fmt"
 	"log"
-	"os/exec"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/Cepave/ops-common/model"
@@ -20,38 +17,25 @@ func BuildHeartbeatRequest(hostname string, agentDirs []string) model.HeartbeatR
 	now := time.Now().Unix()
 
 	for _, agentDir := range agentDirs {
-		// 如果目录下没有.version，我们认为这根本不是一个agent
-		versionFile := path.Join(g.SelfDir, agentDir, ".version")
-		if !f.IsExist(versionFile) {
+		if path.Base(agentDir) != "nqm-agent" {
 			continue
 		}
-
-		version, err := f.ToTrimString(versionFile)
-		if err != nil {
-			log.Printf("read %s/.version fail: %v", agentDir, err)
+		if g.NQMRunningVersion == "<UNDEFINED>" {
 			continue
 		}
-
-		controlFile := path.Join(g.SelfDir, agentDir, version, "control")
-		if !f.IsExist(controlFile) {
-			log.Printf("%s is nonexistent", controlFile)
-			continue
-		}
-
-		cmd := exec.Command("./control", "status")
-		cmd.Dir = path.Join(g.SelfDir, agentDir, version)
-		bs, err := cmd.CombinedOutput()
 
 		status := ""
-		if err != nil {
-			status = fmt.Sprintf("exec `./control status` fail: %s", err)
-		} else {
-			status = strings.TrimSpace(string(bs))
+		nqmVersionPath := path.Join(g.SelfDir, agentDir, g.NQMRunningVersion)
+		switch g.CheckModuleStatus(nqmVersionPath) {
+		case g.Running:
+			status = "Running"
+		case g.NotRunning:
+			status = "NotRunning"
 		}
 
 		realAgent := &model.RealAgent{
 			Name:      agentDir,
-			Version:   version,
+			Version:   g.NQMRunningVersion,
 			Status:    status,
 			Timestamp: now,
 		}

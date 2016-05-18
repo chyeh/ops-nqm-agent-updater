@@ -31,6 +31,13 @@ func prequisite(da *model.DesiredAgent) error {
 }
 
 func StartNQMAgent(da *model.DesiredAgent) {
+	if g.NQMRunningVersion != "<UNDEFINED>" {
+		if g.NQMRunningVersion != da.Version {
+			da.AgentVersionDir = strings.Replace(da.AgentVersionDir, da.Version, g.NQMRunningVersion, 1)
+			StopNQMAgent(da)
+			da.AgentVersionDir = strings.Replace(da.AgentVersionDir, g.NQMRunningVersion, da.Version, 1)
+		}
+	}
 	if err := prequisite(da); err != nil {
 		return
 	}
@@ -38,7 +45,7 @@ func StartNQMAgent(da *model.DesiredAgent) {
 
 	moduleStatus := g.CheckModuleStatus(nqmBinPath)
 	if moduleStatus == g.NotRunning {
-		fmt.Print("Starting [", da.Name, "]...")
+		fmt.Print("Starting [", nqmBinPath, "]...")
 
 		logPath := filepath.Join(da.AgentVersionDir, g.LogFile)
 		LogOutput, err := os.OpenFile(logPath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
@@ -56,11 +63,13 @@ func StartNQMAgent(da *model.DesiredAgent) {
 		cmd.Start()
 		fmt.Println("successfully!!")
 		time.Sleep(1 * time.Second)
+
 		moduleStatus = g.CheckModuleStatus(nqmBinPath)
 		if moduleStatus == g.NotRunning {
 			log.Fatalln("** start failed **")
 		}
 	}
+	g.NQMRunningVersion = da.Version
 }
 
 func Untar(da *model.DesiredAgent) error {

@@ -20,9 +20,9 @@ func StopNQMAgent(da *model.DesiredAgent) {
 		return
 	}
 
-	fmt.Print("Stopping [", da.Name, "] ")
+	fmt.Print("Stopping [", nqmBinPath, "] ")
 
-	pidStr, _ := g.CheckModulePid(da.Name)
+	pidStr, _ := g.CheckModulePid(nqmBinPath)
 
 	cmd := exec.Command("kill", "-9", pidStr)
 	cmd.Stdout = os.Stdout

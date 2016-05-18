@@ -12,6 +12,8 @@ const (
 	NotRunning = 1
 )
 
+var NQMRunningVersion = "<UNDEFINED>"
+
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
